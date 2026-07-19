@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: myappcont
-          image: gollarakesh/webapps:4
+          image: gollarakesh/webapps:5
           ports:
             - containerPort: 8080
 

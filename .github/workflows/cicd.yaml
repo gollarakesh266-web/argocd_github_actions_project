@@ -40,7 +40,7 @@ jobs:
               echo "updating Deployment manifest"
               sed -i "s|${IMAGE_NAME}:.*|${IMAGE_NAME}:${{ github.run_number }}|g" deploymentfiles/deployment.yml
               echo "updated deployment:"
-              cat deploymentfiles/deployment.yaml
+              cat deploymentfiles/deployment.yml
 
       - name: Commit and push manifest
         uses: stefanzweifel/git-auto-commit-action@v5

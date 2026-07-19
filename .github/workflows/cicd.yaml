@@ -1,88 +1,54 @@
-name: CI-CD Pipeline with ArgoCD
 
+name: ArgoCD project using GitHub Actions
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-jobs:
-  build:
-    runs-on: ubuntu-latest
 
+jobs:
+  build_code:
+    runs-on: ubuntu-latest
     env:
       REGISTRY: docker.io
-      IMAGE_NAME: devopshubg333/webapp
+      IMAGE_NAME: gollarakesh/webapps
 
     steps:
-      # Checkout
-      - name: Checkout Code
+      - name: code Checkout
         uses: actions/checkout@v4
 
-      # # Java setup
-      # - name: Set up JDK 17
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     distribution: 'temurin'
-      #     java-version: '17'
-      # - name: Install Maven
-      #   run: |
-      #     sudo apt install maven -y
-
-      # Maven Build
-      - name: Build with Maven
+      - name: Build code
         run: mvn clean package
 
-      # Docker Buildx
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
-      # DockerHub Login
       - name: Docker Login
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build and Push Image
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
+      - name: Build and push Docker Image 
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ github.run_number }}
 
-      # Update Deployment Manifest
-      - name: Update Deployment Manifest
+      - name: Update Deployment manifest file
         run: |
-          echo "Updating image tag in deployment.yml..."
-          sed -i "s|${IMAGE_NAME}:.*|${IMAGE_NAME}:${GITHUB_RUN_NUMBER}|g" deploymentfiles/deployment.yml
-          echo "Updated deployment.yml content:"
-          cat deploymentfiles/deployment.yml
+              echo "updating Deployment manifest"
+              sed -i "s|${IMAGE_NAME}:.*|${IMAGE_NAME}:${{ github.run_number }}|g" deploymentfiles/deployment.yaml
+              echo "updated deployment:"
+              cat deploymentfiles/deployment.yaml
 
-      # Commit Manifest Update
-      - name: Commit and Push Deployment File
+      - name: Commit and push manifest
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update deployment image to version ${{ github.run_number }}"
-          branch: main
+          branch: main 
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
 
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
 
-      # Install ArgoCD CLI
-      - name: Install ArgoCD CLI
-        run: |
-          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-          chmod +x argocd
-          sudo mv argocd /usr/local/bin/
-
-      # Sync with ArgoCD
-      - name: Trigger ArgoCD Sync
-        run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} --username admin --password ${{ secrets.ARGOCD_PASSWORD }} --insecure
-          argocd app sync prodapp
+    
+        

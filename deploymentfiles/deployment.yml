@@ -1,39 +1,36 @@
+
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: webappdeploy
-  labels:
-    app: webapp
+  name: myapp-deployment
 spec:
+  replicas: 2
   selector:
     matchLabels:
-      app: webapp 
-  replicas: 2 
+      app: myapp
   template:
     metadata:
-      name: fbpod
       labels:
-        app: webapp
+        app: myapp
     spec:
       containers:
-        - name: webcont
-          image: devopshubg333/webapp:12
-
+        - name: myappcont
+          image: gollarakesh/webapps:xyz
           ports:
             - containerPort: 8080
+
+
 ---
-apiVersion: v1 
+apiVersion: v1
 kind: Service
 metadata:
-  name: webapp-svc 
-  labels:
-    app: webapp
+  name: myapp-service
 spec:
   type: LoadBalancer
+  selector:
+    app: myapp
   ports:
-    - port: 80
+    - port: 8080
       targetPort: 8080
       protocol: TCP
-  selector:
-    app: webapp
